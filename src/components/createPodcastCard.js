@@ -1,32 +1,38 @@
-import { formatLastUpdated } from "../utils/DateUtils.js";
-import { getGenreNames } from "../utils/GenreService.js";
+// createpodcastcard.js
+import { GenreService } from "../utils/GenreService.js";
+import { DateUtils } from "../utils/DateUtils.js";
 
-/**
- * PodcastPreview Web Component
- * Renders a podcast card with cover, title, genres, seasons, and last updated date.
- * 
- * Attributes:
- * - cover: string (URL of cover image)
- * - title: string
- * - genres: string (comma-separated genre IDs)
- * - seasons: number
- * - updated: string (ISO date)
- * 
- * Events:
- * - Dispatches "podcast-click" when clicked
- */
-class PodcastPreview extends HTMLElement {
+class PodcastCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    this._genres = []; // internal storage for genres as array
   }
 
   static get observedAttributes() {
-    return ["cover", "title", "genres", "seasons", "updated"];
+    return ["title", "cover", "genres", "seasons", "updated"];
   }
 
-  attributeChangedCallback() {
+  // Allow setting genres via JS
+  set genres(value) {
+    if (Array.isArray(value)) {
+      this._genres = value;
+    } else if (typeof value === "string") {
+      this._genres = value.split(",").map(id => id.trim());
+    }
     this.render();
+  }
+
+  get genres() {
+    return this._genres;
+  }
+
+  attributeChangedCallback(attrName, oldVal, newVal) {
+    if (attrName === "genres") {
+      this.genres = newVal; // automatically parse string to array
+    } else {
+      this.render();
+    }
   }
 
   connectedCallback() {
@@ -34,78 +40,61 @@ class PodcastPreview extends HTMLElement {
   }
 
   render() {
-    const cover = this.getAttribute("cover") || "";
     const title = this.getAttribute("title") || "Untitled Podcast";
-    const genresAttr = this.getAttribute("genres") || "";
-    const seasons = this.getAttribute("seasons") || "0";
-    const updated = this.getAttribute("updated") || "";
+    const cover = this.getAttribute("cover") || "./assets/default.jpg";
+    const seasons = Number(this.getAttribute("seasons")) || 0;
+    const updated = this.getAttribute("updated");
 
-    // Convert genre IDs to names using your service
-    const genreNames = getGenreNames(genresAttr.split(",").map(g => g.trim()));
+    const formattedDate = updated
+      ? new Date(updated).toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "";
 
-    // Format updated date
-    const lastUpdated = updated ? formatLastUpdated(updated) : "N/A";
+    const updatedText = formattedDate ? `Updated ${formattedDate}` : "";
+
+    // Render genres safely
+    const genreTags = this.genres
+      .map(id => {
+        const g = GenreService.getGenreById(Number(id));
+        return `<span class="tag">${g ? g.title : "Unknown"}</span>`;
+      })
+      .join("");
 
     this.shadowRoot.innerHTML = `
       <style>
-        .card {
-          background: #fff;
-          border-radius: 12px;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-          overflow: hidden;
-          transition: transform 0.2s ease, box-shadow 0.2s ease;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-        }
-        .card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .cover {
-          width: 100%;
-          height: 180px;
-          object-fit: cover;
-        }
-        .content {
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        .title {
-          font-size: 1.1rem;
-          font-weight: bold;
-          color: #222;
-        }
-        .genres {
-          font-size: 0.85rem;
-          color: #666;
-        }
-        .meta {
-          font-size: 0.8rem;
-          color: #444;
-        }
+        :host { display:block; font-family:'Inter',sans-serif; cursor:pointer; }
+        .podcast-card { border-radius:16px; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.08); transition:0.2s; overflow:hidden; }
+        .podcast-card:hover { transform:translateY(-4px); box-shadow:0 6px 16px rgba(0,0,0,0.12); }
+        .cover { width:90%; height:250px; object-fit:cover; border-radius:12px; display:block; margin:1rem auto 0.75rem; background:#f3f4f6; }
+        .content { padding:0 1rem 1rem; display:flex; flex-direction:column; }
+        h3 { font-size:1rem; font-weight:600; margin:0.25rem 0 0.35rem 0; color:#111827; line-height:1.3; }
+        .meta { color:#374151; font-size:0.85rem; font-weight:500; margin-bottom:0.5rem; }
+        .genres { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:0.75rem; }
+        .tag { background:#f3f4f6; color:#374151; padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:500; }
+        .updated { font-size:0.8rem; color:#6b7280; margin-top:auto; }
       </style>
 
-      <div class="card">
-        <img src="${cover}" alt="${title}" class="cover"/>
+      <article class="podcast-card">
+        <img class="cover" src="${cover}" alt="${title}" />
         <div class="content">
-          <div class="title">${title}</div>
-          <div class="genres">${genreNames.join(", ")}</div>
-          <div class="meta">${seasons} season(s) • Updated ${lastUpdated}</div>
+          <h3>${title}</h3>
+          <div class="meta">${seasons ? `${seasons} season${seasons>1?'s':''}` : 'No seasons listed'}</div>
+          <div class="genres">${genreTags}</div>
+          <p class="updated">${updatedText}</p>
         </div>
-      </div>
+      </article>
     `;
 
-    this.shadowRoot.querySelector(".card").addEventListener("click", () => {
-      this.dispatchEvent(new CustomEvent("podcast-click", {
-        detail: { title, cover, genres: genreNames, seasons, updated },
-        bubbles: true,
-        composed: true
-      }));
+    // Dispatch click event
+    this.shadowRoot.querySelector(".podcast-card").addEventListener("click", () => {
+      this.dispatchEvent(
+        new CustomEvent("podcast-click", { bubbles: true, composed: true })
+      );
     });
   }
 }
 
-customElements.define("podcast-preview", PodcastPreview);
+customElements.define("podcast-card", PodcastCard);
