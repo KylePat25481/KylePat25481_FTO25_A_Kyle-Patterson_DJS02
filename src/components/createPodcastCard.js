@@ -46,6 +46,7 @@ class PodcastCard extends HTMLElement {
     const title = this.getAttribute("title") || "Untitled Podcast";
     const cover = this.getAttribute("cover") || "./assets/default.jpg";
     const seasons = Number(this.getAttribute("seasons")) || 0;
+    const genres = this.getAttribute("genres") ;
     const updated = this.getAttribute("updated");
 
     const formattedDate = updated
@@ -60,7 +61,7 @@ class PodcastCard extends HTMLElement {
 
     // ✅ Use GenreService safely
     const genreTags = GenreService.getNames(this.genres)
-      .map(name => `<span class="tag">${name}</span>`)
+      .map(genres => `<span class="tag">${genres}</span>`)
       .join("");
 
     this.shadowRoot.innerHTML = `
