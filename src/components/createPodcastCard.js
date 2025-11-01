@@ -1,4 +1,4 @@
-// createpodcastcard.js
+// createPodcastCard.js
 import { GenreService } from "../utils/GenreService.js";
 import { DateUtils } from "../utils/DateUtils.js";
 
@@ -17,13 +17,13 @@ class PodcastCard extends HTMLElement {
     if (Array.isArray(value)) {
       this._genres = value.map(v => Number(v));
     } else if (typeof value === "string") {
-      // Clean string: remove spaces and split
       this._genres = value
         .split(",")
         .map(v => Number(v.trim()))
         .filter(v => !isNaN(v));
+    } else {
+      this._genres = [];
     }
-    this.render();
   }
 
   get genres() {
@@ -33,9 +33,9 @@ class PodcastCard extends HTMLElement {
   attributeChangedCallback(name, oldVal, newVal) {
     if (name === "genres") {
       this.genres = newVal;
-    } else {
-      this.render();
     }
+    // ✅ Always re-render after any attribute change
+    this.render();
   }
 
   connectedCallback() {
@@ -46,8 +46,21 @@ class PodcastCard extends HTMLElement {
     const title = this.getAttribute("title") || "Untitled Podcast";
     const cover = this.getAttribute("cover") || "./assets/default.jpg";
     const seasons = Number(this.getAttribute("seasons")) || 0;
-    const genres = this.getAttribute("genres") ;
     const updated = this.getAttribute("updated");
+
+    // ✅ Fallback if setter hasn’t run yet
+    const parsedGenres =
+      this._genres.length > 0
+        ? this._genres
+        : (this.getAttribute("genres") || "")
+            .split(",")
+            .map(v => Number(v.trim()))
+            .filter(v => !isNaN(v));
+
+    // ✅ Use GenreService safely
+    const genreTags = GenreService.getNames(parsedGenres)
+      .map(name => `<span class="tag">${name}</span>`)
+      .join("");
 
     const formattedDate = updated
       ? new Date(updated).toLocaleDateString("en-US", {
@@ -58,11 +71,6 @@ class PodcastCard extends HTMLElement {
       : "";
 
     const updatedText = formattedDate ? `Updated ${formattedDate}` : "";
-
-    // ✅ Use GenreService safely
-    const genreTags = GenreService.getNames(this.genres)
-      .map(genres => `<span class="tag">${genres}</span>`)
-      .join("");
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -134,16 +142,23 @@ class PodcastCard extends HTMLElement {
         <img class="cover" src="${cover}" alt="${title}" />
         <div class="content">
           <h3>${title}</h3>
-          <div class="meta">${seasons ? `${seasons} season${seasons > 1 ? 's' : ''}` : 'No seasons listed'}</div>
+          <div class="meta">${
+            seasons ? `${seasons} season${seasons > 1 ? "s" : ""}` : "No seasons listed"
+          }</div>
           <div class="genres">${genreTags}</div>
           <p class="updated">${updatedText}</p>
         </div>
       </article>
     `;
 
-    this.shadowRoot.querySelector(".podcast-card").addEventListener("click", () => {
-      this.dispatchEvent(new CustomEvent("podcast-click", { bubbles: true, composed: true }));
-    });
+    // 🔔 Event for card click
+    this.shadowRoot
+      .querySelector(".podcast-card")
+      .addEventListener("click", () => {
+        this.dispatchEvent(
+          new CustomEvent("podcast-click", { bubbles: true, composed: true })
+        );
+      });
   }
 }
 
