@@ -1,5 +1,6 @@
 import { createGrid } from "./views/createGrid.js";
 import { createModal } from "./components/createModal.js";
+import { GenreService } from "./utils/GenreService.js";
 
 createGrid();
 
