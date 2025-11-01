@@ -18,28 +18,3 @@ export const DateUtils = {
     })}`;
   },
 };
-
-export function formatLastUpdated(isoDate) {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-  if (isNaN(date.getTime())) {
-    return "Unknown";
-  }
-
-  if (diffDays < 1) {
-    return "Today";
-  } else if (diffDays === 1) {
-    return "Yesterday";
-  } else if (diffDays < 7) {
-    return `${diffDays} days ago`;
-  } else {
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }
-}
