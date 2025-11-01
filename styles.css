@@ -16,20 +16,6 @@ body {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
 }
 
-.search-btn {
-  background: #ffffff;
-  color: #fff;
-  border: none;
-  border-radius: 50%;
-  padding: 10px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-.search-btn:hover {
-  background: #ffffff;
-}
-
 .filters select {
   margin-left: 1rem;
   padding: 0.5rem;
@@ -91,25 +77,24 @@ body {
 
 /* Modal */
 .modal {
-  display: none;
   position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
 }
 
 .modal-content {
-  background: #fff;
-  margin: 10% auto;
-  padding: 1.5rem;
-  border-radius: 12px;
+  background: white;
+  max-width: 900px;
   width: 90%;
-  max-width: 600px;
+  padding: 2rem;
+  border-radius: 8px;
   position: relative;
+  overflow-y: auto;
+  max-height: 90vh;
 }
 
 .title-section {
@@ -170,13 +155,14 @@ body {
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
   position: absolute;
   right: 1rem;
   top: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 2rem;
   cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .close-btn:hover {
@@ -186,26 +172,6 @@ body {
 
 .hidden {
   display: none;
-}
-
-/* Filters */
-.filters {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px;
-}
-
-.filter-label {
-  font-weight: 600;
-}
-
-.filter-select {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
 }
 
 @media (max-width: 480px) {
