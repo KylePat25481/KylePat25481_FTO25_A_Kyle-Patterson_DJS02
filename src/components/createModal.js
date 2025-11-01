@@ -1,56 +1,63 @@
 import { GenreService } from "../utils/GenreService.js";
 import { DateUtils } from "../utils/DateUtils.js";
+import { seasons } from "../data.js";
 
 /**
- * Initializes modal behavior:
- * - Listens for "podcast-click" events from <podcast-preview>.
- * - Populates and displays the modal with the clicked podcast’s details.
+ * Modal Controller - Controls the podcast details modal.
+ *
+ * @principle SRP - Handles modal logic only (open, close, update content).
+ * @principle OCP - Open/Closed Principle: New fields (e.g. ratings) could be added to modal without modifying external usage.
  */
-export function setupModal() {
-  const modal = document.getElementById("podcastModal");
-  const modalContent = modal.querySelector(".modal-content");
-  const closeBtn = modal.querySelector(".close-btn");
+export const createModal = (() => {
+  const el = (id) => document.getElementById(id);
+  const modal = el("modal");
 
-  // Close function (reusable)
-  const closeModal = () => {
-    modal.style.display = "none";
+  /**
+   * Updates the modal content with podcast details.
+   * @param {Object} podcast - Podcast object.
+   */
+  function updateContent(podcast) {
+    el("modalImage").src = podcast.image;
+    el("modalTitle").textContent = podcast.title;
+    el("modalDesc").textContent = podcast.description;
+
+    el("modalGenres").innerHTML = podcast.genres
+  .map(id => {
+    const genre = GenreService.getGenreById(Number(id));
+    return `<span class="tag">${genre ? genre.title : "Unknown"}</span>`;
+  })
+  .join("");
+
+
+    el("modalUpdated").textContent = DateUtils.format(podcast.updated);
+
+    const seasonData =
+      seasons.find((s) => s.id === podcast.id)?.seasonDetails || [];
+    el("seasonList").innerHTML = seasonData
+      .map(
+        (s, index) => `
+          <li class="season-item">
+            <strong class="season-title">Season ${index + 1}: ${
+          s.title
+        }</strong>
+            <span class="episodes">${s.episodes} episodes</span>
+          </li>`
+      )
+      .join("");
+  }
+
+  return {
+    /**
+     * Opens the modal with podcast details.
+     * @param {Object} podcast - Podcast object.
+     */
+    open(podcast) {
+      updateContent(podcast);
+      modal.classList.remove("hidden");
+    },
+    /** Closes the modal. */
+    close() {
+      modal.classList.add("hidden");
+    },
   };
-
-  // Listen for podcast card clicks
-  document.addEventListener("podcast-click", e => {
-    const { title, cover, genres, seasons, updated } = e.detail;
-
-    // Populate modal content dynamically
-    modal.innerHTML = `
-      <div class="modal-header">
-        <h2>${title}</h2>
-        <button class="close-btn">×</button>
-      </div>
-      <div class="modal-body">
-        <img src="${cover}" alt="${title}" class="modal-cover" />
-        <p><strong>Genres:</strong> ${genres.join(", ")}</p>
-        <p><strong>Seasons:</strong> ${seasons}</p>
-        <p><strong>Last Updated:</strong> ${updated}</p>
-      </div>
-    `;
-
-    // Add event listener to the new close button
-    modalContent.querySelector(".close-btn").addEventListener("click", closeModal);
-
-    // Show modal
-    modal.style.display = "block";
-  });
-
-  // Close on overlay click
-  modal.addEventListener("click", e => {
-    if (e.target === modal) closeModal();
-  });
-
-  // Close on escape key
-  document.addEventListener("keydown", e => {
-    if (e.key === "Escape") closeModal();
-  });
-
-  // Also handle initial close button if it exists
-  if (closeBtn) closeBtn.addEventListener("click", closeModal);
-}
+})();
