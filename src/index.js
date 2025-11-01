@@ -23,6 +23,7 @@ document.addEventListener("podcast-selected", (e) => {
   document.getElementById("modalTitle").textContent = podcast.title;
   document.getElementById("modalImage").src = podcast.image;
   document.getElementById("modalDesc").textContent = podcast.description;
+  document.getElementById("modalGenre").textContent = podcast.genre;
   document.getElementById("modalUpdated").textContent = 
     `Updated ${new Date(podcast.updated).toLocaleDateString()}`;
 
