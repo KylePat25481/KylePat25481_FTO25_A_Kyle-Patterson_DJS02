@@ -13,31 +13,13 @@
   <body>
     <header class="app-header">
       <h1>🎙️ Podcast App</h1>
-      <button id="searchBtn" class="search-btn">🔍</button>
     </header>
-    
-<!-- Filters -->
-  <section class="filters">
-    <label for="genre" class="filter-label">Filter by:</label>
-    <select id="genre" class="filter-select">
-      <option value="">All Genres</option>
-      <option value="comedy">Genre 1</option>
-      <option value="news">Genre 2</option>
-      <option value="sports">Genre 3</option>
-      <option value="technology">Genre 4</option>
-    </select>
 
-    <select id="sort" class="filter-select">
-      <option value="updated_desc">Recently Updated</option>
-      <option value="title_asc">Most Popular</option>
-      <option value="title_desc">Newest</option>
-    </select>
-  </section>
     <main id="podcastGrid" class="grid"></main>
 
     <!-- Modal -->
-    <div id="podcastModal" class="modal hidden">
-      <div id="modal-content"></div>
+    <div id="modal" class="modal hidden">
+      <div class="modal-content">
         <div class="title-section">
           <h2 id="modalTitle"></h2>
           <button class="close-btn" id="closeModal">&times;</button>
